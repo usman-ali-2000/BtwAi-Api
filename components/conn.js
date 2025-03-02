@@ -5,7 +5,7 @@ mongoose.set('strictQuery', false);
 async function checkConnection() {
 
   try {
-   await mongoose.connect('mongodb+srv://jamniaz87:ctfRqcvCAq6rsJaA@bookshop.6oijp.mongodb.net/?retryWrites=true&w=majority&appName=BookShop');
+   await mongoose.connect('mongodb+srv://btwai:qu6xIUKXRpiUVOuW@btwai.wr5u5.mongodb.net/?retryWrites=true&w=majority&appName=BtwAi');
     console.log('Connected to MongoDB');
 
     const state = mongoose.connection.readyState;
