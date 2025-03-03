@@ -57,6 +57,10 @@ const adminSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    planusdt: {
+        type: Number,
+        default: 0
+    },
     accType: {
         type: String,
         default: "fresh"

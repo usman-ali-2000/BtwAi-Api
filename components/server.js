@@ -1021,13 +1021,13 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     session.startTransaction();
 
     const { id } = req.params;
-    const { coins, amount, accType, referId, level } = req.body;
+    const { planusdt, amount, accType, referId, level } = req.body;
 
-    if (!coins || !amount || !accType || !level) {
+    if (!planusdt || !amount || !accType || !level) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    if (amount <= 0 || coins <= 0) {
+    if (amount <= 0 || planusdt <= 0) {
       return res.status(400).json({ error: 'Invalid amount or coin value' });
     }
 
@@ -1056,7 +1056,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       updatedUser = await AdminRegister.findByIdAndUpdate(
         id,
         {
-          $inc: { nfuc: coins, usdt: -amount },
+          $inc: { planusdt: planusdt, usdt: -amount },
           level: newLevel,
           accType: accType
         },
@@ -1067,7 +1067,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       updatedUser = await AdminRegister.findByIdAndUpdate(
         id,
         {
-          $inc: { nfuc: coins, usdt: -userData.usdt, usdtRefer: -remaining },
+          $inc: { planusdt: planusdt, usdt: -userData.usdt, usdtRefer: -remaining },
           level: newLevel,
           accType: accType
         },
@@ -1076,18 +1076,35 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       );
     }
 
-    const calcId = '6788fa3e1b4cef3c5578388e';
+    const calcId = '67c57330b46b935d98591bab';
     await Calculation.findByIdAndUpdate(
       calcId,
-      { $inc: { soldNfuc: coins } },
+      { $inc: { soldNfuc: planusdt } },
       { session }
     );
 
-    const incrementValue = accType === 'working'
-      ? (amount * 10) / 100
-      : accType === 'non-working'
-        ? (amount * 5) / 100
-        : null;
+    let incrementValue = 0;
+
+    if (referId && referId.trim() !== '') {
+      const findLevel = await AdminRegister.findOne({ generatedId: referId }, { session });
+      let level = findLevel.level;
+      if (level !== 0) {
+        let percent;
+        if (level === 1) percent = 4;
+        else if (level === 2) percent = 8;
+        else if (level === 3) percent = 12;
+        else if (level === 4) percent = 16;
+        else if (level >= 5 && level <= 8) percent = 20;
+        else percent = null;
+
+
+        incrementValue = accType === 'working'
+          ? (amount * percent) / 100
+          : accType === 'non-working'
+            ? (amount * (percent / 2)) / 100
+            : null;
+      }
+    }
 
     if (incrementValue === null) {
       throw new Error('Invalid account type');
