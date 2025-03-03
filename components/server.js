@@ -1052,11 +1052,15 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       newLevel = userData.level;
     }
     let updatedUser;
+    let newPlan = planusdt;
+    if (level === 6) newPlan = planusdt + 100;
+    else if (level === 7) newPlan = planusdt + 200;
+    else if (level === 8) newPlan = planusdt + 3000;
     if (amount <= userData.usdt) {
       updatedUser = await AdminRegister.findByIdAndUpdate(
         id,
         {
-          $inc: { planusdt: planusdt, usdt: -amount },
+          $inc: { planusdt: newPlan, usdt: -amount },
           level: newLevel,
           accType: accType
         },
@@ -1067,7 +1071,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       updatedUser = await AdminRegister.findByIdAndUpdate(
         id,
         {
-          $inc: { planusdt: planusdt, usdt: -userData.usdt, usdtRefer: -remaining },
+          $inc: { planusdt: newPlan, usdt: -userData.usdt, usdtRefer: -remaining },
           level: newLevel,
           accType: accType
         },
@@ -1079,7 +1083,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     const calcId = '67c57330b46b935d98591bab';
     await Calculation.findByIdAndUpdate(
       calcId,
-      { $inc: { soldNfuc: planusdt } },
+      { $inc: { soldNfuc: newPlan } },
       { session }
     );
 
