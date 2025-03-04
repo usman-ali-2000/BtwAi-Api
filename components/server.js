@@ -690,30 +690,77 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 
 // PATCH route to add coins to an admin's existing coin balance
-
 app.patch('/register/:id/add-coins', async (req, res) => {
   const _id = req.params.id;
-  const { additionalCoins } = req.body;
+  const { referId } = req.body;
 
-  if (typeof additionalCoins !== 'number') {
-    return res.status(400).json({ error: 'additionalCoins must be a number' });
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
+
+    const userData = await AdminRegister.findById(_id).session(session);
+
+    let additionalCoins = userData.planusdt * 2 / 100;
+
     const result = await AdminRegister.findByIdAndUpdate(
       _id,
-      { $inc: { coin: additionalCoins } },
-      { new: true }
+      { $inc: { usdt: additionalCoins } },
+      { new: true, session }
     );
 
+    let incrementValue = 0;
+
+    if (referId && referId.trim() !== '') {
+      const findLevel = await AdminRegister.findOne({ generatedId: referId }, { session });
+      let level = findLevel?.level || 0;
+
+      if (level !== 0) {
+        let percent = null;
+
+        if (level === 1) percent = 4;
+        else if (level === 2) percent = 8;
+        else if (level === 3) percent = 12;
+        else if (level === 4) percent = 16;
+        else if (level >= 5 && level <= 8) percent = 20;
+
+        incrementValue = (additionalCoins * percent) / 100;
+      }
+    }
+
+    if (incrementValue === null) {
+      throw new Error('Invalid account type');
+    }
+
+    const calcId = "67c57330b46b935d98591bab";
+
+    if (referId && referId.trim() !== '') {
+      await AdminRegister.findOneAndUpdate(
+        { generatedId: referId },
+        { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
+        { session }
+      );
+
+      await Calculation.findByIdAndUpdate(
+        calcId,
+        { $inc: { usdt: incrementValue } },
+        { session }
+      );
+    }
+
     if (result) {
+      await session.commitTransaction();
       res.json({ message: 'Coins added successfully', updatedAdmin: result });
     } else {
+      await session.abortTransaction();
       res.status(404).json({ error: 'Admin with the given ID not found' });
     }
   } catch (error) {
+    await session.abortTransaction();
     console.error("Error adding coins:", error);
     res.status(500).json({ error: 'An error occurred while adding coins' });
+  } finally {
+    session.endSession();
   }
 });
 
@@ -1055,6 +1102,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     let newPlan = planusdt;
     if (level === 6) newPlan = planusdt + 100;
     else if (level === 7) newPlan = planusdt + 200;
+
     else if (level === 8) newPlan = planusdt + 3000;
     if (amount <= userData.usdt) {
       updatedUser = await AdminRegister.findByIdAndUpdate(
@@ -1086,48 +1134,6 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       { $inc: { soldNfuc: newPlan } },
       { session }
     );
-
-    let incrementValue = 0;
-
-    if (referId && referId.trim() !== '') {
-      const findLevel = await AdminRegister.findOne({ generatedId: referId }, { session });
-      let level = findLevel.level;
-      if (level !== 0) {
-        let percent;
-        if (level === 1) percent = 4;
-        else if (level === 2) percent = 8;
-        else if (level === 3) percent = 12;
-        else if (level === 4) percent = 16;
-        else if (level >= 5 && level <= 8) percent = 20;
-        else percent = null;
-
-
-        incrementValue = accType === 'working'
-          ? (amount * percent) / 100
-          : accType === 'non-working'
-            ? (amount * (percent / 2)) / 100
-            : null;
-      }
-    }
-
-    if (incrementValue === null) {
-      throw new Error('Invalid account type');
-    }
-
-    // Update referral bonus if `referId` is provided
-    if (referId && referId.trim() !== '') {
-      await AdminRegister.findOneAndUpdate(
-        { generatedId: referId },
-        { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
-        { session }
-      );
-
-      await Calculation.findByIdAndUpdate(
-        calcId,
-        { $inc: { usdt: incrementValue } },
-        { session }
-      );
-    }
 
     await session.commitTransaction();
     return res.json({ updatedUser });
