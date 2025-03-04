@@ -712,7 +712,7 @@ app.patch('/register/:id/add-coins', async (req, res) => {
     let incrementValue = 0;
 
     if (referId && referId.trim() !== '') {
-      const findLevel = await AdminRegister.findOne({ generatedId: referId }, { session });
+      const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
       let level = findLevel?.level || 0;
 
       if (level !== 0) {
