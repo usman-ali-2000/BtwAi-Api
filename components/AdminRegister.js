@@ -95,6 +95,10 @@ const adminSchema = new mongoose.Schema({
         type: Date,
         default: new Date()
     },
+    referDays: {
+        type: Number,
+        default: 0
+    }
 });
 
 // Define the model

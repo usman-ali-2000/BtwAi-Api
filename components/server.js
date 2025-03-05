@@ -702,10 +702,14 @@ app.patch('/register/:id/add-coins', async (req, res) => {
     const userData = await AdminRegister.findById(_id).session(session);
 
     let additionalCoins = userData.planusdt * 2 / 100;
+    let referDayInc = 0;
+    if (userData.referDays <= 30) {
+      referDayInc = 1;
+    }
 
     const result = await AdminRegister.findByIdAndUpdate(
       _id,
-      { $inc: { usdt: additionalCoins } },
+      { $inc: { usdt: additionalCoins, referDays: referDayInc } },
       { new: true, session }
     );
 
@@ -715,14 +719,14 @@ app.patch('/register/:id/add-coins', async (req, res) => {
       const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
       let level = findLevel?.level || 0;
 
-      if (level !== 0) {
+      if (level !== 0 || userData.referDays <= 30) {
         let percent = null;
 
-        if (level === 1) percent = 4;
-        else if (level === 2) percent = 8;
-        else if (level === 3) percent = 12;
-        else if (level === 4) percent = 16;
-        else if (level >= 5 && level <= 8) percent = 20;
+        if (level === 1) percent = 2;
+        else if (level === 2) percent = 4;
+        else if (level === 3) percent = 6;
+        else if (level === 4) percent = 8;
+        else if (level >= 5 && level <= 8) percent = 10;
 
         incrementValue = (additionalCoins * percent) / 100;
       }
@@ -1128,7 +1132,39 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       );
     }
 
-    const calcId = '67c57330b46b935d98591bab';
+    let incrementValue = 0;
+
+    if (referId && referId.trim() !== '') {
+      const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
+      let level = findLevel?.level || 0;
+
+      if (level !== 0) {
+        let percent = null;
+
+        if (level === 1) percent = 2;
+        else if (level === 2) percent = 4;
+        else if (level === 3) percent = 6;
+        else if (level === 4) percent = 8;
+        else if (level >= 5 && level <= 8) percent = 10;
+
+        incrementValue = (newPlan * percent) / 100;
+      }
+    }
+
+    if (incrementValue === null) {
+      throw new Error('Invalid account type');
+    }
+
+    const calcId = "67c57330b46b935d98591bab";
+
+    if (referId && referId.trim() !== '') {
+      await AdminRegister.findOneAndUpdate(
+        { generatedId: referId },
+        { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
+        { session }
+      );
+    }
+
     await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { soldNfuc: newPlan } },
