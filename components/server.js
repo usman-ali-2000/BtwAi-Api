@@ -691,8 +691,8 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 
 // PATCH route to add coins to an admin's existing coin balance
-app.get('/cron', async (req, res) => {
-  
+app.patch('/cron', async (req, res) => {
+
   console.log('Starting daily coin addition job...');
 
   const session = await mongoose.startSession();
