@@ -1,5 +1,5 @@
 require('./conn');
-const startJob  = require('../api/cronStart');
+// const startJob  = require('../api/cronStart');
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
@@ -1870,5 +1870,4 @@ app.delete('/stock/:id', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-  startJob();
 });
