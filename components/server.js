@@ -691,7 +691,7 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 
 // PATCH route to add coins to an admin's existing coin balance
-app.patch('/cron', async (req, res) => {
+app.patch('/add-coin', async (req, res) => {
 
   console.log('Starting daily coin addition job...');
 
