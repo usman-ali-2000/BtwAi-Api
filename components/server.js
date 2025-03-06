@@ -1,5 +1,5 @@
 require('./conn');
-const cron = require('node-cron');
+// const job1 = require('../components/')
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
