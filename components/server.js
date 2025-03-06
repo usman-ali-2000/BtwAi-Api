@@ -1,4 +1,5 @@
 require('./conn');
+const cron = require('node-cron');
 const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
@@ -690,79 +691,75 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 
 // PATCH route to add coins to an admin's existing coin balance
-app.patch('/register/:id/add-coins', async (req, res) => {
-  const _id = req.params.id;
-  const { referId } = req.body;
+cron.schedule('*/5 * * * *', async () => {
+  console.log('Starting daily coin addition job...');
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
+    // Fetch all users for coin update
+    const users = await AdminRegister.find().session(session);
 
-    const userData = await AdminRegister.findById(_id).session(session);
+    const calcId = "67c57330b46b935d98591bab"; // Your calculation ID
 
-    let additionalCoins = userData.planusdt * 2 / 100;
-    let referDayInc = 0;
-    if (userData.referDays <= 30) {
-      referDayInc = 1;
-    }
+    for (const userData of users) {
+      const _id = userData._id;
+      const referId = userData.referId;
 
-    const result = await AdminRegister.findByIdAndUpdate(
-      _id,
-      { $inc: { usdt: additionalCoins, referDays: referDayInc } },
-      { new: true, session }
-    );
+      // Calculate additional coins and referDay increment
+      let additionalCoins = userData.planusdt * 2 / 100;
+      let referDayInc = userData.referDays < 30 ? 1 : 0;
 
-    let incrementValue = 0;
+      // Update user's coins and referDays
+      const result = await AdminRegister.findByIdAndUpdate(
+        _id,
+        { $inc: { usdt: additionalCoins, referDays: referDayInc } },
+        { new: true, session }
+      );
 
-    if (referId && referId.trim() !== '') {
-      const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
-      let level = findLevel?.level || 0;
+      let incrementValue = 0;
 
-      if (level !== 0 || userData.referDays <= 30) {
-        let percent = null;
+      // Calculate referral bonuses if applicable
+      if (referId && referId.trim() !== '') {
+        const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
+        let level = findLevel?.level || 0;
 
-        if (level === 1) percent = 2;
-        else if (level === 2) percent = 4;
-        else if (level === 3) percent = 6;
-        else if (level === 4) percent = 8;
-        else if (level >= 5 && level <= 8) percent = 10;
+        if (level !== 0 || userData.referDays <= 30) {
+          let percent = 0;
 
-        incrementValue = (additionalCoins * percent) / 100;
+          if (level === 1) percent = 2;
+          else if (level === 2) percent = 4;
+          else if (level === 3) percent = 6;
+          else if (level === 4) percent = 8;
+          else if (level >= 5 && level <= 8) percent = 10;
+
+          incrementValue = (additionalCoins * percent) / 100;
+
+          await AdminRegister.findOneAndUpdate(
+            { generatedId: referId },
+            { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
+            { session }
+          );
+
+          await Calculation.findByIdAndUpdate(
+            calcId,
+            { $inc: { usdt: incrementValue } },
+            { session }
+          );
+        }
+      }
+
+      if (!result) {
+        console.error(`Failed to update user with ID: ${_id}`);
       }
     }
 
-    if (incrementValue === null) {
-      throw new Error('Invalid account type');
-    }
-
-    const calcId = "67c57330b46b935d98591bab";
-
-    if (referId && referId.trim() !== '') {
-      await AdminRegister.findOneAndUpdate(
-        { generatedId: referId },
-        { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
-        { session }
-      );
-
-      await Calculation.findByIdAndUpdate(
-        calcId,
-        { $inc: { usdt: incrementValue } },
-        { session }
-      );
-    }
-
-    if (result) {
-      await session.commitTransaction();
-      res.json({ message: 'Coins added successfully', updatedAdmin: result });
-    } else {
-      await session.abortTransaction();
-      res.status(404).json({ error: 'Admin with the given ID not found' });
-    }
+    await session.commitTransaction();
+    console.log('Daily coin addition completed successfully.');
   } catch (error) {
     await session.abortTransaction();
-    console.error("Error adding coins:", error);
-    res.status(500).json({ error: 'An error occurred while adding coins' });
+    console.error('Error during daily coin addition:', error);
   } finally {
     session.endSession();
   }
