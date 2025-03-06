@@ -12,8 +12,15 @@
         "dest": "/index.js"
       }
     ],
+    "crons": [
+      {
+        "path": "/cron",
+        "schedule": "* * * * *"
+      }
+    ],
     "env": {
       "NODE_ENV": "production"
     }
+    
   }
   
