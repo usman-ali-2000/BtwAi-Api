@@ -1102,12 +1102,14 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     } else {
       newLevel = userData.level;
     }
+
     let updatedUser;
+
     let newPlan = planusdt;
     if (level === 6) newPlan = planusdt + 100;
     else if (level === 7) newPlan = planusdt + 200;
-
     else if (level === 8) newPlan = planusdt + 3000;
+
     if (amount <= userData.usdt) {
       updatedUser = await AdminRegister.findByIdAndUpdate(
         id,
@@ -1325,10 +1327,10 @@ app.post("/register", async (req, res) => {
       return res.status(400).json({ msg: "All fields are mandatory" });
     }
 
-    const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
-    if (deviceExist) {
-      return res.status(402).json({ msg: "Device already registered" });
-    }
+    // const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
+    // if (deviceExist) {
+    //   return res.status(402).json({ msg: "Device already registered" });
+    // }
     // Check if email already exists
     const existingUser = await AdminRegister.findOne({ email }).session(session);
     if (existingUser) {
