@@ -1357,30 +1357,11 @@ app.post("/register", async (req, res) => {
     await AdminRegister.updateOne(
       { email },
       {
-        $inc: { usdt: 1 },
         $set: { rewardDays: 7 }
       },
       { session }
     );
 
-    // Update referral bonus
-    let usdtReferUpdate;
-    const referAmount = parseFloat((1 / 10).toFixed(6));
-    if (userId) {
-      usdtReferUpdate = await AdminRegister.findOneAndUpdate(
-        { generatedId: userId },
-        { $inc: { usdtRefer: referAmount } },
-        { new: true, session }
-      );
-    }
-
-    // Update Calculation
-    const calcId = "6788fa3e1b4cef3c5578388e";
-    await Calculation.findByIdAndUpdate(
-      calcId,
-      { $inc: { usdt: 1 + referAmount } },
-      { new: true, session }
-    );
 
     // Commit transaction
     await session.commitTransaction();
