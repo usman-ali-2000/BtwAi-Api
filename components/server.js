@@ -1108,7 +1108,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     let newPlan = planusdt;
     if (level === 6) newPlan = planusdt + 100;
     else if (level === 7) newPlan = planusdt + 200;
-    else if (level === 8) newPlan = planusdt + 3000;
+    else if (level === 8) newPlan = planusdt + 300;
 
     if (amount <= userData.usdt) {
       updatedUser = await AdminRegister.findByIdAndUpdate(
