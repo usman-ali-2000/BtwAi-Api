@@ -29,6 +29,7 @@ const Notification = require('./Notification');
 const Withdraw = require('./Withdraw');
 const Calculation = require('./Calculation');
 const Stock = require('./StockSchema');
+const Campaign = require('./Campaign');
 
 const PORT = process.env.PORT || 8000;
 
@@ -1852,6 +1853,34 @@ app.delete('/stock/:id', async (req, res) => {
   }
 });
 
+app.get('/campaign', async (req, res) => {
+  try {
+    const campaigns = await Campaign.find();
+    res.status(200).json(campaigns);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.post('/campaign', async (req, res) => {
+  try {
+    const campaign = new Campaign(req.body);
+    await campaign.save();
+    res.status(201).json(campaign);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+app.delete('/campaign/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    await Campaign.findByIdAndDelete(id);
+    res.status(204).json({ message: 'Campaign deleted successfully' });
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
