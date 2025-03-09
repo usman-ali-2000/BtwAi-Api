@@ -1872,6 +1872,18 @@ app.post('/campaign', async (req, res) => {
   }
 });
 
+app.patch('/campaign/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const campaign = await Campaign.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    res.status(200).json(campaign);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 app.delete('/campaign/:id', async (req, res) => {
   try {
     const id = req.params.id;
