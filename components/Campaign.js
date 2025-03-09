@@ -13,6 +13,9 @@ const CampaignSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    image: {
+        type: String,
+    },
     startDate: {
         type: Date,
         default: Date.now
