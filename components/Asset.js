@@ -4,47 +4,47 @@ const mongoose = require('mongoose');
 const assetSchema = new mongoose.Schema({
     heading: {
         type: String,
-        required: true
+        default:'empty'
     },
     appIcon: {
         type: String,
-        required: true
+        default:'empty'
     },
     ad: {
         type: String,
-        required: true
+        default:'empty'
     },
     facebook: {
         type: String,
-        required: true
+        default:'empty'
     },
     whatsapp: {
         type: String,
-        required: true
+        default:'empty'
     },
     instagram: {
         type: String,
-        required: true
+        default:'empty'
     },
     twitter: {
         type: String,
-        required: true
+        default:'empty'
     },
     tiktok: {
         type: String,
-        required: true
+        default:'empty'
     },
     youtube: {
         type: String,
-        required: true
+        default:'empty'
     },
     telegram: {
         type: String,
-        required: true
+        default:'empty'
     },
     discord: {
         type: String,
-        required: true
+        default:'empty'
     },
     version: {
         type: Number,
