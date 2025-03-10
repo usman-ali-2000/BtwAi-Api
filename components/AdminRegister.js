@@ -98,6 +98,10 @@ const adminSchema = new mongoose.Schema({
     referDays: {
         type: Number,
         default: 0
+    },
+    banned: {
+        type: Boolean,
+        default: false
     }
 });
 
