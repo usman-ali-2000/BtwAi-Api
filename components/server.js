@@ -477,7 +477,7 @@ app.put('/task/:postId', async (req, res) => {
 
     const taskDollar = parseFloat((1 / 30).toFixed(6));
 
-    // Increment `usdtTask` for the user
+    // Increment `usdt` for the user
     const updateTaskUsdt = await AdminRegister.findByIdAndUpdate(
       userId,
       { $inc: { usdtTask: taskDollar } },
@@ -793,7 +793,7 @@ app.patch('/register/:userId/minus-usdt', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    let total = user.usdtTask + user.usdtRefer;
+    let total = user.usdt + user.usdtRefer;
 
     if (amount > total) {
       await session.abortTransaction();
@@ -813,7 +813,7 @@ app.patch('/register/:userId/minus-usdt', async (req, res) => {
       const amt = amount - user.usdtRefer; // Amount to deduct from `usdtRefer`
       senderUpdate = await AdminRegister.findOneAndUpdate(
         { generatedId: userId },
-        { $set: { usdtRefer: 0 }, $inc: { usdtTask: -amt } }, // Set `usdt` to 0 and deduct the remainder from `usdtRefer`
+        { $set: { usdtRefer: 0 }, $inc: { usdt: -amt } }, // Set `usdt` to 0 and deduct the remainder from `usdtRefer`
         { new: true, session }
       );
     }
@@ -842,7 +842,7 @@ app.patch('/register/:userId/minus-usdt', async (req, res) => {
 
     res.status(200).json({
       message: 'USDT deducted successfully.',
-      balance: senderUpdate.usdtTask,
+      balance: senderUpdate.usdt,
       usdtRefer: senderUpdate.usdtRefer,
     });
   } catch (error) {
