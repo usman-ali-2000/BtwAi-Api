@@ -489,7 +489,7 @@ app.put('/task/:postId', async (req, res) => {
       return res.status(400).json({ error: 'Failed to update user task rewards' });
     }
 
-    const calcId = "6788fa3e1b4cef3c5578388e";
+    const calcId = "67c57330b46b935d98591bab";
 
     // Increment `usdt` in Calculation
     const updateCalculation = await Calculation.findByIdAndUpdate(
@@ -647,7 +647,7 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
     }
 
     // Update calculation data
-    const calcId = '6788fa3e1b4cef3c5578388e';
+    const calcId = '67c57330b46b935d98591bab';
     const updateCalc = await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { usdt: amount } },
@@ -823,7 +823,7 @@ app.patch('/register/:userId/minus-usdt', async (req, res) => {
     }
 
     // Update Calculation document
-    const calcId = '6788fa3e1b4cef3c5578388e';
+    const calcId = '67c57330b46b935d98591bab';
     const updateCalc = await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { withdrawUsdt: amount, usdt: -amount } },
@@ -1024,7 +1024,7 @@ app.patch('/sevenDayReward/:id', async (req, res) => {
       return res.status(400).json({ error: 'Failed to update reward' });
     }
 
-    const calcId = '6788fa3e1b4cef3c5578388e';
+    const calcId = '67c57330b46b935d98591bab';
     await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { usdt: claimamt } },
@@ -1709,7 +1709,7 @@ app.post('/stock', async (req, res) => {
 
     const newNfuc = stockNfuc - stockNfuc / 100;
     // Update stock calculation
-    const calcId = '6788fa3e1b4cef3c5578388e';
+    const calcId = '67c57330b46b935d98591bab';
     const updateCalc = await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { stock: stockNfuc, soldNfuc: -newNfuc } },
@@ -1764,7 +1764,7 @@ app.patch("/stockClaim/:id", async (req, res) => {
       throw new Error('Failed to update user NFUC');
     }
 
-    const calcId = '6788fa3e1b4cef3c5578388e';  // Example static calculation ID
+    const calcId = '67c57330b46b935d98591bab';  // Example static calculation ID
     const updateCalc = await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { soldNfuc: stockNfuc / 100 } },
