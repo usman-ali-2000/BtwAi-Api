@@ -1052,7 +1052,7 @@ app.patch('/register/:id/first-claim', async (req, res) => {
 
     const updateFirstClaim = await AdminRegister.findByIdAndUpdate(
       id,
-      { $set: { firstClaim: true }, $inc: { usdt: 1 } },
+      { $set: { firstClaim: true }, $inc: { usdt: 2 } },
       { new: true }
     );
 
