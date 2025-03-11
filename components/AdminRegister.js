@@ -102,6 +102,10 @@ const adminSchema = new mongoose.Schema({
     banned: {
         type: Boolean,
         default: false
+    },
+    firstClaim: {
+        type: Boolean,
+        default: false
     }
 });
 

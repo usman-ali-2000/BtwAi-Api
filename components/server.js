@@ -1046,6 +1046,29 @@ app.patch('/sevenDayReward/:id', async (req, res) => {
   }
 });
 
+app.patch('/register/:id/first-claim', async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const updateFirstClaim = await AdminRegister.findByIdAndUpdate(
+      id,
+      { $set: { firstClaim: true }, $inc: { usdt: 1 } },
+      { new: true }
+    );
+
+    if (!updateFirstClaim) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'Updated First Claim.', data: updateFirstClaim });
+
+  } catch (e) {
+    console.error('Error updating first claim:', e);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 app.patch('/register/updateAll', async (req, res) => {
   try {
     const updateAll = await AdminRegister.updateMany(
