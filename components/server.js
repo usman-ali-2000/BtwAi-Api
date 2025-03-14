@@ -692,73 +692,61 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 // PATCH route to add coins to an admin's existing coin balance
 app.patch('/register/:id/add-coins', async (req, res) => {
   const _id = req.params.id;
-  const { referId } = req.body;
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-
     const userData = await AdminRegister.findById(_id).session(session);
 
-    let additionalCoins = userData.planusdt * 2 / 100;
-    let referDayInc = 0;
-    if (userData.referDays <= 30) {
-      referDayInc = 1;
+    // Ensure user exists before proceeding
+    if (!userData) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ error: 'Admin with the given ID not found' });
     }
 
+    let referDayInc = 0;
+    let percentValue = 2;
+    if (userData.referDays <= 7) {
+      referDayInc = 1;
+      percentValue = 4;
+    }
+
+    let additionalCoins = (userData.planusdt * percentValue) / 100;
+
+    // Update user coins
     const result = await AdminRegister.findByIdAndUpdate(
       _id,
       { $inc: { usdt: additionalCoins, referDays: referDayInc } },
       { new: true, session }
     );
 
-    let incrementValue = 0;
-
-    if (referId && referId.trim() !== '') {
-      const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
-      let level = findLevel?.level || 0;
-
-      if (level !== 0 || userData.referDays <= 30) {
-        let percent = null;
-
-        if (level === 1) percent = 2;
-        else if (level === 2) percent = 4;
-        else if (level === 3) percent = 6;
-        else if (level === 4) percent = 8;
-        else if (level >= 5 && level <= 8) percent = 10;
-
-        incrementValue = (additionalCoins * percent) / 100;
-      }
-    }
-
-    if (incrementValue === null) {
-      throw new Error('Invalid account type');
+    if (!result) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ error: 'Failed to update user' });
     }
 
     const calcId = "67c57330b46b935d98591bab";
 
-    if (referId && referId.trim() !== '') {
-      await AdminRegister.findOneAndUpdate(
-        { generatedId: referId },
-        { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
-        { session }
-      );
+    // Update Calculation record
+    const calcUpdate = await Calculation.findByIdAndUpdate(
+      calcId,
+      { $inc: { usdt: additionalCoins } },
+      { session }
+    );
 
-      await Calculation.findByIdAndUpdate(
-        calcId,
-        { $inc: { usdt: incrementValue } },
-        { session }
-      );
-    }
-
-    if (result) {
-      await session.commitTransaction();
-      res.json({ message: 'Coins added successfully', updatedAdmin: result });
-    } else {
+    if (!calcUpdate) {
       await session.abortTransaction();
-      res.status(404).json({ error: 'Admin with the given ID not found' });
+      session.endSession();
+      return res.status(500).json({ error: 'Failed to update calculation' });
     }
+
+    // Commit transaction after both updates succeed
+    await session.commitTransaction();
+    res.json({ message: 'Coins added successfully', updatedAdmin: result });
+
   } catch (error) {
     await session.abortTransaction();
     console.error("Error adding coins:", error);
@@ -767,6 +755,7 @@ app.patch('/register/:id/add-coins', async (req, res) => {
     session.endSession();
   }
 });
+
 
 app.patch('/register/:userId/minus-usdt', async (req, res) => {
   const session = await mongoose.startSession();
@@ -1164,18 +1153,8 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     if (referId && referId.trim() !== '') {
       const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
       let level = findLevel?.level || 0;
-
-      if (level !== 0) {
-        let percent = null;
-
-        if (level === 1) percent = 2;
-        else if (level === 2) percent = 4;
-        else if (level === 3) percent = 6;
-        else if (level === 4) percent = 8;
-        else if (level >= 5 && level <= 8) percent = 10;
-
-        incrementValue = (newPlan * percent) / 100;
-      }
+      let percent = 20;
+      incrementValue = (newPlan * percent) / 100;
     }
 
     if (incrementValue === null) {
@@ -1188,6 +1167,12 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
       await AdminRegister.findOneAndUpdate(
         { generatedId: referId },
         { $inc: { usdtRefer: incrementValue, earnFriend: incrementValue } },
+        { session }
+      );
+
+      await Calculation.findByIdAndUpdate(
+        calcId,
+        { $inc: { usdt: incrementValue } },
         { session }
       );
     }
