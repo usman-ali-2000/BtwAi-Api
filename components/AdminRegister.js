@@ -106,6 +106,10 @@ const adminSchema = new mongoose.Schema({
     firstClaim: {
         type: Boolean,
         default: false
+    },
+    acceptTermsAndConditions: {
+        type: Boolean,
+        default: false
     }
 });
 

@@ -691,15 +691,14 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 // PATCH route to add coins to an admin's existing coin balance
 app.patch('/register/:id/add-coins', async (req, res) => {
-  const _id = req.params.id;
 
+  const _id = req.params.id;
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const userData = await AdminRegister.findById(_id).session(session);
 
-    // Ensure user exists before proceeding
     if (!userData) {
       await session.abortTransaction();
       session.endSession();
@@ -715,7 +714,6 @@ app.patch('/register/:id/add-coins', async (req, res) => {
 
     let additionalCoins = (userData.planusdt * percentValue) / 100;
 
-    // Update user coins
     const result = await AdminRegister.findByIdAndUpdate(
       _id,
       { $inc: { usdt: additionalCoins, referDays: referDayInc } },
@@ -730,7 +728,6 @@ app.patch('/register/:id/add-coins', async (req, res) => {
 
     const calcId = "67c57330b46b935d98591bab";
 
-    // Update Calculation record
     const calcUpdate = await Calculation.findByIdAndUpdate(
       calcId,
       { $inc: { usdt: additionalCoins } },
@@ -1330,10 +1327,10 @@ app.post("/register", async (req, res) => {
 
   try {
     console.log("Received request body:", req.body);
-    const { email, name, userId, password, location, deviceId } = req.body;
+    const { email, name, userId, password, location, deviceId, acceptTermsAndConditions } = req.body;
 
     // Validation: Ensure all required fields are provided
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !acceptTermsAndConditions) {
       return res.status(400).json({ msg: "All fields are mandatory" });
     }
 
@@ -1362,6 +1359,7 @@ app.post("/register", async (req, res) => {
       password: hashedPassword,
       location,
       deviceId,
+      acceptTermsAndConditions,
     });
 
     await user.save({ session });
