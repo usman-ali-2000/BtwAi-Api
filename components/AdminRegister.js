@@ -107,7 +107,7 @@ const adminSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    acceptTermsAndConditions: {
+    acceptConditions: {
         type: Boolean,
         default: false
     }
