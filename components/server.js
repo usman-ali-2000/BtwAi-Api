@@ -1327,10 +1327,10 @@ app.post("/register", async (req, res) => {
 
   try {
     console.log("Received request body:", req.body);
-    const { email, name, userId, password, location, deviceId } = req.body;
+    const { email, name, userId, password, location, deviceId, acceptTermsAndConditions } = req.body;
 
     // Validation: Ensure all required fields are provided
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !acceptTermsAndConditions) {
       return res.status(400).json({ msg: "All fields are mandatory" });
     }
 
@@ -1359,6 +1359,7 @@ app.post("/register", async (req, res) => {
       password: hashedPassword,
       location,
       deviceId,
+      acceptTermsAndConditions,
     });
 
     await user.save({ session });
