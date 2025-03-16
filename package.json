@@ -18,6 +18,7 @@
     "mongoose": "^8.2.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.15",
+    "webidl2js": "^18.0.0",
     "whatwg-url": "^14.2.0"
   },
   "devDependencies": {
