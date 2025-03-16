@@ -1322,22 +1322,24 @@ app.post("/admin-login", async (req, res) => {
 });
 
 app.post("/register", async (req, res) => {
-  const session = await mongoose.startSession(); // Start session
-  session.startTransaction(); // Begin transaction
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
     console.log("Received request body:", req.body);
+
     const { email, name, userId, password, location, deviceId, acceptTermsAndConditions } = req.body;
 
-    // Validation: Ensure all required fields are provided
     if (!name || !email || !password || !acceptTermsAndConditions) {
       return res.status(400).json({ msg: "All fields are mandatory" });
     }
 
-    // const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
-    // if (deviceExist) {
-    //   return res.status(402).json({ msg: "Device already registered" });
-    // }
+    // Check if device is already registered
+    const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
+    if (deviceExist) {
+      return res.status(402).json({ msg: "Device already registered" });
+    }
+
     // Check if email already exists
     const existingUser = await AdminRegister.findOne({ email }).session(session);
     if (existingUser) {
@@ -1346,11 +1348,14 @@ app.post("/register", async (req, res) => {
 
     const generatedId = await generateUniqueId();
 
-    // Hash the password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Hash the password securely
+    let hashedPassword;
+    try {
+      hashedPassword = await bcrypt.hash(password, 10);
+    } catch (error) {
+      return res.status(500).json({ msg: "Error hashing password" });
+    }
 
-    // Create a new user object
     const user = new AdminRegister({
       name,
       email,
@@ -1366,17 +1371,12 @@ app.post("/register", async (req, res) => {
 
     await AdminRegister.updateOne(
       { email },
-      {
-        $set: { rewardDays: 7 }
-      },
+      { $set: { rewardDays: 7 } },
       { session }
     );
 
-
-    // Commit transaction
     await session.commitTransaction();
-    session.endSession();
-
+    
     res.status(201).json({
       id: user._id,
       name: user.name,
@@ -1385,12 +1385,11 @@ app.post("/register", async (req, res) => {
 
     console.log("User registered successfully:", user);
   } catch (e) {
-    // Rollback transaction in case of error
     await session.abortTransaction();
-    session.endSession();
-
     console.error("Error during registration:", e);
     res.status(500).json({ msg: "Server error. Please try again later." });
+  } finally {
+    session.endSession(); // Always close session
   }
 });
 
