@@ -1335,10 +1335,10 @@ app.post("/register", async (req, res) => {
     }
 
     // Check if device is already registered
-    const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
-    if (deviceExist) {
-      return res.status(402).json({ msg: "Device already registered" });
-    }
+    // const deviceExist = await AdminRegister.findOne({ deviceId }).session(session);
+    // if (deviceExist) {
+    //   return res.status(402).json({ msg: "Device already registered" });
+    // }
 
     // Check if email already exists
     const existingUser = await AdminRegister.findOne({ email }).session(session);
