@@ -691,14 +691,13 @@ app.patch('/register/:id/send-usdt', async (req, res) => {
 
 // PATCH route to add coins to an admin's existing coin balance
 app.patch('/register/:id/add-coins', async (req, res) => {
-
   const _id = req.params.id;
+  const referId = req.body.referId;
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const userData = await AdminRegister.findById(_id).session(session);
-
     if (!userData) {
       await session.abortTransaction();
       session.endSession();
@@ -726,6 +725,42 @@ app.patch('/register/:id/add-coins', async (req, res) => {
       return res.status(404).json({ error: 'Failed to update user' });
     }
 
+    if (referId && referId.trim() !== '') {
+      const incrementValue1 = (additionalCoins * 10) / 100;
+      const findLevel = await AdminRegister.findOneAndUpdate(
+        { generatedId: referId },
+        { $inc: { usdtRefer: incrementValue1, earnFriend: incrementValue1 } },
+        { new: true, session }
+      );
+
+      if (!findLevel) {
+        throw new Error("Refer ID not found");
+      }
+
+      // Fetching next levels
+      const find1 = await AdminRegister.findOne({ generatedId: referId }).session(session);
+      const find2 = find1 ? await AdminRegister.findOne({ generatedId: find1.userId }).session(session) : null;
+      const find3 = find2 ? await AdminRegister.findOne({ generatedId: find2.userId }).session(session) : null;
+
+      if (find2) {
+        const incrementValue2 = (additionalCoins * 5) / 100;
+        await AdminRegister.findByIdAndUpdate(
+          find2._id,
+          { $inc: { usdtRefer: incrementValue2, earnFriend: incrementValue2 } },
+          { new: true, session }
+        );
+      }
+
+      if (find3) {
+        const incrementValue3 = (additionalCoins * 2) / 100;
+        await AdminRegister.findByIdAndUpdate(
+          find3._id,
+          { $inc: { usdtRefer: incrementValue3, earnFriend: incrementValue3 } },
+          { new: true, session }
+        );
+      }
+    }
+
     const calcId = "67c57330b46b935d98591bab";
 
     const calcUpdate = await Calculation.findByIdAndUpdate(
@@ -737,10 +772,9 @@ app.patch('/register/:id/add-coins', async (req, res) => {
     if (!calcUpdate) {
       await session.abortTransaction();
       session.endSession();
-      return res.status(500).json({ error: 'Failed to update calculation' });
+      return res.status(500).json({ error: 'Calculation record not found' });
     }
 
-    // Commit transaction after both updates succeed
     await session.commitTransaction();
     res.json({ message: 'Coins added successfully', updatedAdmin: result });
 
@@ -752,6 +786,7 @@ app.patch('/register/:id/add-coins', async (req, res) => {
     session.endSession();
   }
 });
+
 
 
 app.patch('/register/:userId/minus-usdt', async (req, res) => {
@@ -1150,7 +1185,7 @@ app.patch('/register/dollarToNfuc/:id', async (req, res) => {
     if (referId && referId.trim() !== '') {
       const findLevel = await AdminRegister.findOne({ generatedId: referId }).session(session);
       let level = findLevel?.level || 0;
-      let percent = 20;
+      let percent = 5;
       incrementValue = (newPlan * percent) / 100;
     }
 
@@ -1376,7 +1411,7 @@ app.post("/register", async (req, res) => {
     );
 
     await session.commitTransaction();
-    
+
     res.status(201).json({
       id: user._id,
       name: user.name,
