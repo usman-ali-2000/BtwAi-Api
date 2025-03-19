@@ -91,14 +91,14 @@ app.post('/send-otp', async (req, res) => {
     service: 'gmail',
     auth: {
 
-      user: 'btw8834@gmail.com',
-      pass: 'rokv myir vasw uqga',
+      user: 'btwnetwork6@gmail.com',
+      pass: 'zuyf oeml klcq ehyc',
     },
   });
 
   // Email options
   const mailOptions = {
-    from: 'btw8834@gmail.com',
+    from: 'btwnetwork6@gmail.com',
     to: email,
     subject: 'Your OTP Code',
     text: `Your OTP code is ${otp}`,
@@ -124,8 +124,8 @@ app.post('/send-email', async (req, res) => {
   let transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'wingedxnetwork@gmail.com',
-      pass: 'ypfr himv ztwm uvej',
+      user: 'btwnetwork6@gmail.com',
+      pass: 'zuyf oeml klcq ehyc',
     },
   });
 
@@ -133,7 +133,7 @@ app.post('/send-email', async (req, res) => {
   const mailOptions = {
 
     from: email,
-    to: 'wingedxnetwork@gmail.com',
+    to: 'btwnetwork6@gmail.com',
     subject: subject,
     text: text,
   };
@@ -697,6 +697,7 @@ app.patch('/register/:id/add-coins', async (req, res) => {
   session.startTransaction();
 
   try {
+    
     const userData = await AdminRegister.findById(_id).session(session);
     if (!userData) {
       await session.abortTransaction();
@@ -1404,12 +1405,6 @@ app.post("/register", async (req, res) => {
 
     await user.save({ session });
 
-    await AdminRegister.updateOne(
-      { email },
-      { $set: { rewardDays: 7 } },
-      { session }
-    );
-
     await session.commitTransaction();
 
     res.status(201).json({
@@ -1424,7 +1419,7 @@ app.post("/register", async (req, res) => {
     console.error("Error during registration:", e);
     res.status(500).json({ msg: "Server error. Please try again later." });
   } finally {
-    session.endSession(); // Always close session
+    session.endSession(); 
   }
 });
 
