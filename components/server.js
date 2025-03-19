@@ -1418,6 +1418,7 @@ app.post("/register", async (req, res) => {
     await user.save({ session });
 
     await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json({
       id: user._id,
