@@ -101,7 +101,19 @@ app.post('/send-otp', async (req, res) => {
     from: 'btwnetwork6@gmail.com',
     to: email,
     subject: 'Your OTP Code',
-    text: `Your OTP code is ${otp}`,
+    html: `
+    <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-family: Arial, sans-serif;">
+      <div style="background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h2 style="color: #333;">Your OTP Code</h2>
+        <p style="font-size: 18px; color: #555;">Use the following OTP to verify your email:</p>
+        <p style="font-size: 24px; font-weight: bold; color: #d9534f; background-color: #f8d7da; padding: 10px; display: inline-block; border-radius: 5px;">
+          ${otp}
+        </p>
+        <p style="color: #777; font-size: 14px;">This OTP is valid for only 10 minutes.</p>
+        <p style="color: #999; font-size: 12px;">If you didn’t request this, please ignore this email.</p>
+      </div>
+    </div>
+  `
   };
 
   try {
